@@ -1,0 +1,65 @@
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn import metrics as m
+import matplotlib.pyplot as plt
+
+trainData = pd.read_csv(r"E:\ML Practicals\temperatures.csv")
+
+cols = list(trainData.columns)
+
+# Plot Subplots
+fig, axs = plt.subplots(2, 6, )
+
+for i in range(1, 13):
+    X = trainData[[cols[0]]]
+    Y = trainData[[cols[i]]]
+
+    print('\n\nMONTH:', cols[i])
+
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=1)
+
+    LR_model = LinearRegression()
+
+    LR_model.fit(X_train, Y_train)
+
+    r_sq = LR_model.score(X_train, Y_train)
+
+    print("determination coefficient:", r_sq)
+
+    print("INTERCEPT:", LR_model.intercept_)
+    print('SLOPE\t:', LR_model.coef_)
+
+    Y_pred = LR_model.predict(X_test)
+    print('PREDICTION:', Y_pred, sep='\n')
+
+    print('METRICS:')
+    print('MSE: ', m.mean_squared_error(Y_test, Y_pred, squared=True))
+    print('RMSE: ', m.mean_squared_error(Y_test, Y_pred, squared=False))
+    print('MAE: ', m.mean_absolute_error(Y_test, Y_pred))
+    print('R-Squared Score: ', m.r2_score(Y_test, Y_pred))
+
+
+
+    # Plot Graph for Temperature vs Year for Training Data
+    # axs[0, 0].scatter(X_train, Y_train, color='black')
+    # axs[0, 0].plot(X_train, LR_model.predict(X_train), color='blue', linewidth=3)
+    # axs[0, 0].set_title("Temperature vs Year: Training Data")
+    # axs[0, 0].set_xlabel("Year")
+    # axs[0, 0].set_ylabel("Temperature")
+
+    if i < 7:
+        j = 0
+        k = i - 1
+    else:
+        j = 1
+        k = i - 7
+
+    # Plot Graph for Temperature vs Year for Testing Data
+    axs[j, k].scatter(X_test, Y_test, color='red')
+    axs[j, k].plot(X_test, LR_model.predict(X_test), color='black', linewidth=3)
+    axs[j, k].set_title("Temp vs Year: {}".format(cols[i]))
+    axs[j, k].set_xlabel("Year")
+    axs[j, k].set_ylabel("Temperature")
+
+plt.show()
