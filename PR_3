@@ -1,0 +1,110 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# %% [markdown]
+# ## Prediction Models : Classification Algorithm (Supervised Machine Learning)
+#
+# 4. Decision Tree Classification
+
+# %% [markdown]
+# ### Preparing Data for Classification
+
+# %% [markdown]
+# If a candidate's Chance of Admit is greater than 80%, the candidate will receive the 1 label.
+#
+# If a candidate's Chance of Admit is less than or equal to 80%, the candidate will receive the 0 label.
+
+# %% [code]
+# reading the dataset
+df = pd.read_csv("E:\ML Practicals\Admission_Predict.csv")
+print("shape of dataset",df.shape)
+
+# %% [code]
+# it may be needed in the future.
+serialNo = df["Serial No."].values
+df.drop(["Serial No."], axis=1, inplace=True)
+
+df = df.rename(columns={'Chance of Admit ': 'Chance of Admit'})
+
+# %% [code]
+X = df.drop(["Chance of Admit"], axis=1)
+y = df["Chance of Admit"].values
+
+# %% [code]
+# separating train (80%) and test (%20) sets
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, random_state=101)
+
+# %% [code]
+# normalization
+from sklearn.preprocessing import MinMaxScaler
+
+scalerX = MinMaxScaler(feature_range=(0, 1))
+X_train[X_train.columns] = scalerX.fit_transform(X_train[X_train.columns])
+X_test[X_test.columns] = scalerX.transform(X_test[X_test.columns])
+
+# %% [code]
+y_train_01 = [1 if each > 0.8 else 0 for each in y_train]
+y_test_01 = [1 if each > 0.8 else 0 for each in y_test]
+
+# list to array
+y_train_01 = np.array(y_train_01)
+y_test_01 = np.array(y_test_01)
+
+# %% [markdown]
+# ### 4. Decision Tree Classification
+
+# %% [code]
+from sklearn.tree import DecisionTreeClassifier
+
+dtc = DecisionTreeClassifier()
+dtc.fit(X_train, y_train_01)
+y_pred_dtc = dtc.predict(X_test)
+print("score: ", dtc.score(X_test, y_test_01))
+
+# %% [code]
+# confusion matrix
+from sklearn.metrics import confusion_matrix
+
+cm_dtc = confusion_matrix(y_test_01, y_pred_dtc)
+print("confusion matrix for test data:decision tree\n",cm_dtc)
+# print("y_test_01 == 1 :" + str(len(y_test_01[y_test_01==1]))) # 29
+cm_dtc
+
+# %% [code]
+# cm visualization
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+f, ax = plt.subplots(figsize=(5, 5))
+sns.heatmap(cm_dtc, annot=True, linewidths=0.5, linecolor="red", fmt=".0f", ax=ax)
+plt.title("Test for Test Dataset:decision tree")
+plt.xlabel("predicted y values")
+plt.ylabel("real y values")
+plt.show()
+
+# %% [code]
+from sklearn.metrics import precision_score, recall_score
+
+print("precision_score: ", precision_score(y_test_01, y_pred_dtc))
+print("recall_score: ", recall_score(y_test_01, y_pred_dtc))
+
+from sklearn.metrics import f1_score
+
+print("f1_score: ", f1_score(y_test_01, y_pred_dtc))
+
+# %% [markdown]
+# Test for Train Dataset:
+
+# %% [code]
+cm_dtc_train = confusion_matrix(y_train_01, dtc.predict(X_train))
+print("confusion matrix for test data:decision tree\n",cm_dtc_train)
+f, ax = plt.subplots(figsize=(5, 5))
+sns.heatmap(cm_dtc_train, annot=True, linewidths=0.5, linecolor="red", fmt=".0f", ax=ax)
+plt.xlabel("predicted y values")
+plt.ylabel("real y values")
+plt.title("Test for Train Dataset:decision tree")
+plt.show()
